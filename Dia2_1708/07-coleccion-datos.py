@@ -5,7 +5,7 @@ mezclada=['otoño',14,False,15.2,[1,2,3]]
 
 #imprimir la primera posicion
 # en python si la posicion no existe, lanzara un error, a diferencia de JS que indicará undefined(no definido)
-print(colores[0])
+print(colores[0])  
 #al usar valores negativos en las posiciones de la lista, se invertira y podremos recorrer dicha lista
 print(colores[-1])
 print(colores[1:2])  #lashasta la posicion < que 2
@@ -43,7 +43,7 @@ print(color_eliminado)
 del colores[0]
 print(colores)
 
-#sacar la longitud de la lista
+#sacar la longitud de la lista cuantos elementos tiene la lista
 print(len(colores))
 
 #TUPLAS
@@ -59,6 +59,7 @@ print(notas.count(10))
 #coleccion de datos ordenada pero no por indices ya que se maneja un ordenamiento segun su clave-valor, se puede modificar
 persona ={
     'nombre':'Christian',
+    'nombre':'Antonio',
     'apellido':'Julca',
     'correo':'correo@correo.com',
     'edad':35,
@@ -76,11 +77,17 @@ persona ={
 }
 
 persona['edad'] = 35
-persona['nacionalidad'] ='peruano'
+persona['nacionalidad'] ='peruano'    #agregando 
 print(persona["edad"])
 print(persona['nombre'])
 print(persona)
 
+
+print(persona.keys())    #forma de extraer solamente las llaves en forma de valores
+print(persona.values())  #fora de extraer solamente los valores
+
+persona.clear()
+print(persona)
 
 
 #imprimir el primer hobbie de la persona

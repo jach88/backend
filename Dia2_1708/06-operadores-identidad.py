@@ -8,7 +8,7 @@ print(id(frutas))
 #el 'is' e 'is not' se usa mas que todo pra validar si las variables a comparar estan apuntando a la misma direccion de memoria o no
 #las variables que son colecciones de datos como listas,tuplas y diccionarios son variables mutables
 #las otras variables (int, str, float) son variables inmutables
-frutas2 = frutas
+frutas2 = frutas     
 frutas2.append('fresa')
 print(frutas)
 print(id(frutas2))
