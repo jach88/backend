@@ -94,3 +94,6 @@ print(persona)
 
 print(persona['hobbies'][0]['nombre'])
 
+
+#conjuntos
+
