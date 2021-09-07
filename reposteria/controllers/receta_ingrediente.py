@@ -2,6 +2,7 @@ from typing import List
 from flask_restful import Resource, reqparse
 from models.recetas_ingredientes import RecetaIngredienteModel
 from models.receta import RecetaModel
+from models.log import LogModel
 from models.ingrediente import IngredienteModel
 from conexion_bd import base_de_datos
 
@@ -39,23 +40,28 @@ class RecetaIngredientesController(Resource):
             #2.2 Agregar el registro en la tabla recetas_ingredientes
             for ingrediente in ingredientes_id:
                 ingredienteEncontrado = base_de_datos.session.query(IngredienteModel).filter(
-                    IngredienteModel.ingredienteId == ingrediente).first()
+                    IngredienteModel.ingredienteId == ingrediente['ingrediente_id']).first()
                 if ingredienteEncontrado is None:
                     raise Exception("Ingrediente incorrecto")
                 nueva_receta_ingrediente = RecetaIngredienteModel()
-                nueva_receta_ingrediente.ingrediente = ingrediente
+                nueva_receta_ingrediente.ingrediente = ingrediente['ingrediente_id']
                 nueva_receta_ingrediente.receta = receta_id
-                nueva_receta_ingrediente.recetaIngredienteCantidad = 5
+                nueva_receta_ingrediente.recetaIngredienteCantidad = ingrediente['cantidad']
                 base_de_datos.session.add(nueva_receta_ingrediente)
             base_de_datos.session.commit()
-
+            #NOTA: Basta con que no exista un solo ingrediente para que toda la operacion se cancele
 
             return{
                 "message":"Agregado exitosamente"
             },201
         except Exception as err:
             base_de_datos.session.rollback()
-            #agregar ese error
+            #agregar ese error a los logs
+
+            nuevoLog = LogModel()
+            nuevoLog.logRazon = err.args[0]
+            base_de_datos.session.add(nuevoLog)
+            base_de_datos.session.commit()
             print(err.args)
             return {
                 "message":err.args[0],
