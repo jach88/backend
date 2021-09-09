@@ -13,7 +13,7 @@
   "host": "reposteria-christian.herokuapp.com",
   "basePath": "/",
   "schemes": [
-    "http"
+    "https"
   ],
   "consumes": [
     "application/json"
