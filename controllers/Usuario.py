@@ -1,8 +1,15 @@
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, request
 from re import search
 from bcrypt import checkpw, hashpw, gensalt
 from models.Usuario import UsuarioModel
 from config.conexion_bd import base_de_datos
+from flask_jwt import jwt_required, current_identity
+from sqlalchemy.exc import IntegrityError
+from cryptography.fernet import Fernet
+from os import environ
+from datetime import datetime, timedelta
+from json import dumps
+from config.enviar_correo import enviarCorreo
 
 PATRON_CORREO = r'\w+[@]\w+[.]\w{2,3}'
 PATRON_PASSWORD =r'(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%#&?])[A-Za-z\d@$!%*#&?]{6,}'
@@ -125,3 +132,165 @@ class LoginController(Resource):
             "message":"Usuario encontrado"
         }
         
+
+class UsuarioController(Resource):
+
+    # con el decorador indicamos que este metodo de esta clase va a ser protegido
+    @jwt_required()
+    def get(self):
+        print(current_identity)
+        del current_identity['_sa_instance_state']
+        del current_identity['usuarioPassword']
+        return {
+            "content": current_identity
+        }
+
+    @jwt_required()
+    def patch(self):
+        serializador = reqparse.RequestParser()
+        serializador.add_argument(
+            'nombre',
+            type=str,
+            location='json',
+            required=False,
+        )
+
+        serializador.add_argument(
+            'apellido',
+            type=str,
+            location='json',
+            required=False,
+        )
+
+        serializador.add_argument(
+            'correo',
+            type=str,
+            location='json',
+            required=False,
+        )
+
+        serializador.add_argument(
+            'password',
+            type=str,
+            location='json',
+            required=False,
+        )
+
+        serializador.add_argument(
+            'telefono',
+            type=str,
+            location='json',
+            required=False,
+        )
+
+
+        data = serializador.parse_args()
+        print(data)        
+        usuarioId = current_identity.get('usuarioId')
+        usuarioEncontrado = base_de_datos.session.query(
+            UsuarioModel).filter(UsuarioModel.usuarioId == usuarioId).first()
+        # operador ternario
+        # TODO hacer que si el usuario envia la password entonces modificarla pero previamente usar bcrypt para encriptar la contraseña
+        nuevaPwd = None
+        if data.get('password') is not None:
+            if search(PATRON_PASSWORD, data.get('password')) is None:
+                return{
+                    "message":"La contraseña debe tener al menos 1 mayus , 1minus, 1 num y 1 caracter"
+                },400
+
+            print('hay password')
+            
+            pwdb = bytes(data.get('password'), 'utf-8')
+            salt = gensalt(rounds=10)
+            nuevaPwd = hashpw(pwdb, salt).decode('utf-8')
+        print(nuevaPwd)
+        try:
+            usuarioActualizado = base_de_datos.session.query(
+                UsuarioModel).filter(UsuarioModel.usuarioId == usuarioEncontrado.usuarioId).update({
+                    "usuarioNombre": data.get('nombre') if data.get(
+                        'nombre') is not None else usuarioEncontrado.usuarioNombre,
+
+                    "usuarioApellido": data.get('apellido') if data.get(
+                        'apellido') is not None else usuarioEncontrado.usuarioApellido,
+
+                    UsuarioModel.usuarioCorreo: data.get('correo') if data.get(
+                        'correo') is not None else usuarioEncontrado.usuarioCorreo,
+
+                    UsuarioModel.usuarioTelefono: data.get('telefono') if data.get(
+                        'telefono') is not None else usuarioEncontrado.usuarioTelefono,
+
+                    UsuarioModel.usuarioPassword: nuevaPwd if nuevaPwd is not None else usuarioEncontrado.usuarioPassword
+                })
+            print('paso')
+            base_de_datos.session.commit()
+
+            return {
+                "message": "Usuario actualizado exitosamente"
+            }
+        except IntegrityError:
+            return{
+                "message":"Ya existe un usuario con ese correo, no se puede duplicar el correo"
+            },400
+
+class ResetearPasswordController(Resource):
+    serializador= reqparse.RequestParser()
+    serializador.add_argument(
+        'correo',
+        type=str,
+        required=True,
+        location='json',
+        help='Falta el correo' 
+    )
+
+    def post(self):
+        data = self.serializador.parse_args()
+        correo = data.get('correo')
+        if search(PATRON_CORREO, correo) is None:
+            return{
+                "message":"Formato de correo incorrecto"
+            }, 400
+        usuario = base_de_datos.session.query(UsuarioModel).filter(
+            UsuarioModel.usuarioCorreo == correo).first()
+        # if usuario is None: 
+        if not usuario:
+            return {
+                "message":"Usuario no encontrado"
+            },404
+        fernet = Fernet(environ.get('FERNET_SECRET'))
+        mensaje = {
+            "fecha_caducidad": str(datetime.utcnow()+timedelta(minutes=30)),
+            "correo": correo
+        }
+        mensaje_json=dumps(mensaje) 
+        mensaje_encriptado = fernet.encrypt(
+            bytes(mensaje_json, 'utf-8')).decode('utf-8')
+        # print(mensaje_encriptado)
+        # mensaje_desencriptado = fernet.decrypt(
+        #     bytes(mensaje_encriptado,'utf-8'))
+        # print(mensaje_desencriptado)
+        link =request.host_url+"change-password?token={}".format(
+            mensaje_encriptado)
+
+        enviarCorreo(correo, """<div class="d-flex" style="background:#f9f9f9;   center; height: 500px;">
+                <div style="width:138px;margin: auto;"><img width="138" src="https://ci3.googleusercontent.com/proxy/xbGGyYfNO7rOwB3cJ8GvQ_6GUpaWXoqPKpUmrMJDjD2gVRFyUARcwh0qhbWv92i3qb1zJj3c9PYNULP_B3wHWJY--pjeXQiAyt6s5ETJieJ41Gy3loYi3AINdO8gJTk=s0-d-e1-ft#https://cdn.discordapp.com/email_assets/592423b8aedd155170617c9ae736e6e7.png"/></div>
+                <div>
+                    <div style="margin: auto;width: 700px;margin-top: 70px;">
+                    <div>
+                        <h2 style="color: #585555; font-weight: 500;">Hola, {}</h2>
+                    </div>
+                    <div>
+                        <p style="color: #919191;">Haz clic en el siguiente botón para restablecer tu contraseña de Discord. Si no has solicitado una nueva contraseña, ignora este correo.</p>
+                    </div>
+                    <div style="margin-top: 70px;
+    margin-bottom: 70px;">
+                        <a href="{}" style="text-decoration: none;text-decoration: none;background-color: #5865f2;padding: 9px;color: white;margin-left: 300px;" >Restablecer contraseña</a>
+                    </div>
+                    <hr>
+                    </div>
+                </div>
+            
+            </div>   
+        """.format(usuario.usuarioNombre,link))  
+        return{
+            "message":"Se envió un correo con el cambio de password"
+        }  
