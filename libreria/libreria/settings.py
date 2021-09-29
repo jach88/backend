@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'gestion',
-    'rest_framework'
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -140,3 +142,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #colorea los test en consola
 TEST_RUNNER="redgreenunittest.django.runner.RedGreenDiscoverRunner"
+
+#Los origenes que permitiran el acceso a la api
+# CORS_ALLOW_ORIGINS = ['https://www.google.com']
+CORS_ALLOW_ALL_ORIGINS = True
+
+#Los metodos a los cuales pueden acceder a mi api
+
+CORS_ALLOW_METHODS = ['GET','POST']
+
+#Los headers que pueden enviar a mi api
+CORS_ALLOW_HEADERS = ['Content-Type','Authorization']
+
