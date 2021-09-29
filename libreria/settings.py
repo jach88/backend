@@ -152,5 +152,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = ['GET','POST']
 
 #Los headers que pueden enviar a mi api
-CORS_ALLOW_HEADERS = ['Content-Type','Authorization']
+CORS_ALLOW_HEADERS = ['Content-Type','origin','Authorization',"accept",]
+
+
+#es donde se almacenan todos 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
