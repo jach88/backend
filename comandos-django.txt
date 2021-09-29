@@ -1,2 +1,0 @@
-django-admin startproject <nombre_proyecto> => Inicia un nuevo proyecto en django
-
