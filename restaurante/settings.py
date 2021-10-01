@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from datetime import timedelta
 from os import environ
 from pathlib import Path
 
@@ -137,3 +138,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Cuando se sobre escribe o se modifica el comportamiento original del modelo auth
 AUTH_USER_MODEL = 'cms.UsuarioModel'
+
+#brinda la configuraacion necesaria a mi libreria django rest framework
+REST_FRAMEWORK ={
+    #sirve para indicar que la clase encargada de la autenticacion de las rutas de mi api rest las realizara la libreria rest_framework_simplejwt
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+#Encargada de la configuracion de mi libreria DRF simple JWT
+SIMPLE_JWT ={
+    'USER_ID_FIELD':'usuarioId',
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1)
+}
+
+#sirve para indicar donde se subiran los archivos qie 
+MEDIA_ROOT = BASE_DIR / 'media'
+
+MEDIA_URL = '/assets/'
