@@ -1,9 +1,11 @@
-from rest_framework.generics import CreateAPIView
+from django.conf import settings
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ImagenSerializer, RegistroSerializer, PlatoSerializer
 from .models import PlatoModel
+from os import remove
 
 
 
@@ -25,7 +27,7 @@ class RegistroController(CreateAPIView):
                 'content':data.errors
             })
 
-class PlatoController(CreateAPIView):
+class PlatosController(ListCreateAPIView):
     serializer_class = PlatoSerializer
     queryset = PlatoModel.objects.all()
 
@@ -42,6 +44,13 @@ class PlatoController(CreateAPIView):
                 'message':'Error al crear el plato',
                 'content':data.errors
             },status=400)
+    
+    def get(self,request):
+        data = self.serializer_class(instance=self.get_queryset(), many=True)
+        return Response(data={
+            'message':None,
+            'content':data.data
+        })
 
 class SubirImagenController(CreateAPIView):
     serializer_class = ImagenSerializer
@@ -61,3 +70,51 @@ class SubirImagenController(CreateAPIView):
                 'message':'Error al crear el archivo',
                 'content': data.errors
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PlatoController(RetrieveUpdateDestroyAPIView):
+    serializer_class= PlatoSerializer
+    queryset = PlatoModel.objects.all()
+
+    def patch(self, request, id):
+        #actualizacion parcial para el lunes
+        pass
+
+
+    def put(self, request, id):
+        #para el lunes hacer el put (actualizacion total ) para el lunes
+        pass
+    def get(self, request, id):
+        platoEncontrado = self.get_queryset().filter(platoId= id).first()
+
+        if not platoEncontrado:
+            return Response(data={
+                'message':'Plato no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+       
+        data = self.serializer_class(instance=platoEncontrado)
+        
+        return Response(data={
+            'content':data.data
+        })
+
+    def delete(self, request, id):
+        
+        platoEncontrado = self.get_queryset().filter(platoId = id).first()
+        if not platoEncontrado:
+            return Response(data={
+                'message':'Plato no encontrado'
+            },status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            data = platoEncontrado.delete()
+            remove(settings.MEDIA_ROOT / str(platoEncontrado.platoFoto))
+        except Exception as e:
+            print(e)
+        
+            
+        # data= PlatoModel.objects.filter(platoId= id).delete()
+        print(data)
+        return Response(data={
+            'message':'Plato eliminado exitosamente'
+        })
