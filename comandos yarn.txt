@@ -1,1 +1,5 @@
 yarn init => crea un nuevo proyecto en node y crea un package.json (npm init)
+yarn add nombre_libreria => busca esa libreria y si la encuentra la instalará
+
+
+http://expressjs.com/en/5x/api.html#req documentacion del request
