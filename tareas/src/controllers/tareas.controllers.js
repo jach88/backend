@@ -109,16 +109,47 @@ export const filtrarTareas = async(req,res)=>{
     // /buscarTarea hora y dia
     // /buscar tarea nombre
     const {dias, hora,nombre} = req.query;
+
+    let filtros =[];
+
+    if (nombre){
+      filtros=[
+          ...filtros,
+          {
+              tareaNombre:{
+                  [Op.iLike]:"%" + nombre + "%",
+              },
+          },
+      ]; 
+    }
+
+    if(hora) {
+        filtros=[
+            ...filtros,
+            {
+                tareaHora: hora,
+            },
+        ];
+    }
+
+    if(dias){
+        //BUSCAR SI HYA UNA COMA Y SI LA HYA HACER UN SPLIT CON TODOS LOS ELEMENTOS
+        const dias_array = dias.split(",");
+
+        filtros = [
+            ...filtros,
+            {
+                tareaDias:{
+                    [Op.contains]: dias_array,
+                },
+            },
+        ];
+    }
+    try{
+
     const tareas = await Tarea.findAll  ({
         where: {
-            tareaNombre: {
-                [Op.like]:"%" + nombre + "%",            
-            },
-            tareaHora: hora,
-            //revisar la forma de hacer un where en un array en postgressql con sequelize
-            tareaDias: {
-                [Op.in]:dias,
-            },
+            [Op.and]:filtros
         },
         // si queremos indicar que columnas queremos retornar usaremos el atributo attributes indicando en un array la lista de columnas a retornar ademas si queremos modificar (añadir un alias) a la columna tendremos que agregar un array como 
         // attributes:[["nombre","nombrecito"], "tareaDias"],
@@ -127,10 +158,17 @@ export const filtrarTareas = async(req,res)=>{
         attributes:{
             exclude: ["createdAd","fecha_de_actualizacion"],
         },
-        logging:console.log,
+        // logging:console.log,
     });
 
     return res.json({
         content:tareas,
     });
+    }catch (e){
+        console.log(e);
+        return res.json({
+            message:"Valores incorrectos",
+            content:[],
+        });
+    }
 };
