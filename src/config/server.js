@@ -37,10 +37,10 @@ export class Server{
         //   (documentacion.schemes = ["http"]));
 
         if (process.env.NODE_ENV === "production") {
-            documentacion.host = "tareas-express-christian.herokuapp.com/";
+            documentacion.host = "tareas-express-christian.herokuapp.com";
             documentacion.schemes = ["https"];
       } else {
-            documentacion.host = `127.0.0.1;${this.puerto}`;
+            documentacion.host = `127.0.0.1:${this.puerto}`;
             documentacion.schemes = ["http"];
       }
 
