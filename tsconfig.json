@@ -8,6 +8,8 @@
         "moduleResolution": "Node",
         "esModuleInterop": true, //para hacer la importacion de una manera mas facil usando alias para cuando querramos importar toda la libreria
         "removeComments": true,
-        "forceConsistentCasingInFileNames": true //si ponemos el nombre empezando en mayuscula entonces al momento de hacer la compilacion respeta el nombre del archivo
+        "forceConsistentCasingInFileNames": true, //si ponemos el nombre empezando en mayuscula entonces al momento de hacer la compilacion respeta el nombre del archivo
+        "strictPropertyInitialization": false, //sirve para indicar que se puede crear atributos de clase sin la necesitdad de inicializar en el contructor
+        "experimentalDecorators": true //sirve para utilizar los decoradores class-validator sin problema
     }
 }
