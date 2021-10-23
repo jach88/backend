@@ -1,6 +1,14 @@
-import { Schema } from "mongoose";
+import { ObjectId, Schema } from "mongoose";
 
-const mascotaSchema = new Schema({
+export interface IMascota {
+    mascotaNombre:string;
+    mascotaRaza:string;
+    mascotaSexo:"MACHO"|"HEMBRA"
+    mascotaFechaNacimiento:Date;
+    _id?:string;
+}
+
+export const mascotaSchema = new Schema({
     mascotaNombre:{
         type:Schema.Types.String,
         alias:"nombre"
@@ -17,5 +25,7 @@ const mascotaSchema = new Schema({
     mascotaFechaNacimiento:{
         type: Schema.Types.Date,
         alias:"fecha_nac"
-    }
+    },
+},{
+    timestamps:false
 })
